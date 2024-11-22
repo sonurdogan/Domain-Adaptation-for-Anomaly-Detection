@@ -12,7 +12,7 @@ from torchvision.transforms import Compose, ToTensor
 from tqdm import tqdm, trange
 
 import config
-from data import MNISTM, TextureSourceDataset, TextureTargetDataset
+from data import TextureDataset
 from models import Net
 from utils import loop_iterable, set_requires_grad, GrayscaleToRgb
 
@@ -44,7 +44,7 @@ def main(args):
     half_batch = args.batch_size // 32
    
 
-    source_dataset = TextureSourceDataset(config.DATA_DIR/'source')
+    source_dataset = TextureDataset(config.DATA_DIR/'source')
     
     train_size = int(0.8 * len(source_dataset)) 
     test_size = len(source_dataset) - train_size  
@@ -53,7 +53,7 @@ def main(args):
 
     source_loader = DataLoader(train_dataset, batch_size=half_batch, shuffle=True)
 
-    target_dataset = TextureTargetDataset(config.DATA_DIR/'target')
+    target_dataset = TextureDataset(config.DATA_DIR/'target')
     target_loader = DataLoader(target_dataset, batch_size=half_batch, shuffle=True)
 
 
