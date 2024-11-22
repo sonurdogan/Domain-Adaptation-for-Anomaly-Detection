@@ -8,23 +8,31 @@ from tqdm import tqdm
 import config
 from models import Net
 from utils import GrayscaleToRgb
-from data import TextureDataset
+from data import get_FlawDataset
 from sklearn.metrics import f1_score
+from torchvision import transforms
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def create_dataloaders(batch_size=64):
     
-    dataset = TextureDataset(config.DATA_DIR/'source')
+    #dataset = TextureDataset(config.DATA_DIR/'source')
     
-    train_size = int(0.8 * len(dataset)) 
-    test_size = len(dataset) - train_size  
+    #train_size = int(0.8 * len(dataset)) 
+    #test_size = len(dataset) - train_size  
 
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size], generator=torch.Generator().manual_seed(42))
+    #train_dataset, test_dataset = random_split(dataset, [train_size, test_size], generator=torch.Generator().manual_seed(42))
+
+    transform = transforms.Compose([
+        transforms.Resize((28, 28)),
+        transforms.ToTensor()
+        ])
+    
+    train_dataset, test_dataset = get_FlawDataset(config.DATA_DIR/'source', transform=transform)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     return train_loader, test_loader
 
@@ -86,7 +94,7 @@ def main(args):
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Train a network on MNIST')
-    arg_parser.add_argument('--batch-size', type=int, default=64)
+    arg_parser.add_argument('--batch_size', type=int, default=64)
     arg_parser.add_argument('--epochs', type=int, default=30)
     args = arg_parser.parse_args()
     main(args)

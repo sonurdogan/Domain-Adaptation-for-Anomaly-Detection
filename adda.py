@@ -12,10 +12,10 @@ from torchvision.transforms import Compose, ToTensor
 from tqdm import tqdm, trange
 
 import config
-from data import TextureDataset
 from models import Net
 from utils import loop_iterable, set_requires_grad, GrayscaleToRgb
-
+from data import get_FlawDataset
+from torchvision import transforms
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -44,16 +44,18 @@ def main(args):
     half_batch = args.batch_size // 32
    
 
-    source_dataset = TextureDataset(config.DATA_DIR/'source')
-    
-    train_size = int(0.8 * len(source_dataset)) 
-    test_size = len(source_dataset) - train_size  
 
-    train_dataset, test_dataset = random_split(source_dataset, [train_size, test_size], generator=torch.Generator().manual_seed(42))
+    transform = transforms.Compose([
+        transforms.Resize((28, 28)),
+        transforms.ToTensor()
+        ])
+    
+    train_dataset, test_dataset = get_FlawDataset(config.DATA_DIR/'source', transform=transform)
+
 
     source_loader = DataLoader(train_dataset, batch_size=half_batch, shuffle=True)
 
-    target_dataset = TextureDataset(config.DATA_DIR/'target')
+    target_dataset = get_FlawDataset(config.DATA_DIR/'target', transform=transform, split_data = False)
     target_loader = DataLoader(target_dataset, batch_size=half_batch, shuffle=True)
 
 

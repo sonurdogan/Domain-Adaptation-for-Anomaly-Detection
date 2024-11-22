@@ -3,20 +3,25 @@ import argparse
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from data import TextureDataset
+from data import get_FlawDataset
 from tqdm import tqdm
 from sklearn.metrics import f1_score
 import config
 from models import Net
-
+from torchvision import transforms
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def main(args):
-    dataset = TextureDataset(config.DATA_DIR/'target')
+    transform = transforms.Compose([
+        transforms.Resize((28, 28)),
+        transforms.ToTensor()
+        ])
+    
+    dataset = get_FlawDataset(config.DATA_DIR/'target', transform=transform, split_data = False)
 
-    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
+    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
     model = Net().to(device)
     model.load_state_dict(torch.load(args.MODEL_FILE))
