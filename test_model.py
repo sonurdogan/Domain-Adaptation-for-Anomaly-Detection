@@ -9,6 +9,10 @@ from sklearn.metrics import f1_score
 import config
 from models import Net
 from torchvision import transforms
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -42,6 +46,18 @@ def main(args):
     f1 = f1_score(all_y_true, all_y_pred, average='weighted')
     print(f'Accuracy on target data: {mean_accuracy:.4f}')
     print(f'F1 Score on target data: {f1:.4f}')
+
+    
+    print("Classification report:", classification_report(all_y_true, all_y_pred))
+        
+    
+    class_names = ['cut', 'hole', 'color', 'good']
+    cm = confusion_matrix(all_y_true, all_y_pred)
+    plt.figure(figsize=(10, 10))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False,  xticklabels=class_names, yticklabels=class_names)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
 
 
 if __name__ == '__main__':
