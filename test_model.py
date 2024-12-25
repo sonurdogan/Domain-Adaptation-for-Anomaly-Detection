@@ -9,7 +9,7 @@ from sklearn.metrics import f1_score
 import config
 from models import Net
 from torchvision import transforms
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -34,18 +34,25 @@ def main(args):
     total_accuracy = 0
     all_y_true = []
     all_y_pred = []
+    all_y_probs = []
+
+    model.eval()
     with torch.no_grad():
         for x, y_true in tqdm(dataloader, leave=False):
             x, y_true = x.to(device), y_true.to(device)
             y_pred = model(x)
+            y_prob = torch.softmax(y_pred, dim=1)
             total_accuracy += (y_pred.max(1)[1] == y_true).float().mean().item()
             all_y_true.extend(y_true.cpu().numpy())
             all_y_pred.extend(y_pred.max(1)[1].cpu().numpy())
+            all_y_probs.extend(y_prob.cpu().numpy())
     
     mean_accuracy = total_accuracy / len(dataloader)
     f1 = f1_score(all_y_true, all_y_pred, average='weighted')
+    roc_auc = roc_auc_score(all_y_true, all_y_probs, multi_class='ovr', average='weighted')
     print(f'Accuracy on target data: {mean_accuracy:.4f}')
     print(f'F1 Score on target data: {f1:.4f}')
+    print(f'ROC AUC on target data: {roc_auc:.4f}')
 
     
     print("Classification report:", classification_report(all_y_true, all_y_pred))
