@@ -69,7 +69,7 @@ def test_model(model, dataloader, plot_confusion_matrix=True):
         plt.show()
 
 
-def do_epoch(model, dataloader, criterion, optim=None):
+def do_epoch(model, dataloader, criterion, optim):
     total_loss = 0
     total_accuracy = 0
     all_y_true = []
@@ -79,10 +79,9 @@ def do_epoch(model, dataloader, criterion, optim=None):
         y_pred = model(x)
         loss = criterion(y_pred, y_true)
 
-        if optim is not None:
-            optim.zero_grad()
-            loss.backward()
-            optim.step()
+        optim.zero_grad()
+        loss.backward()
+        optim.step()
 
         total_loss += loss.item()
         total_accuracy += (y_pred.max(1)[1] == y_true).float().mean().item()
@@ -108,7 +107,7 @@ def main(args):
 
     for epoch in range(1, args.epochs+1):
         model.train()
-        train_loss, train_accuracy, train_f1 = do_epoch(model, train_loader, criterion, optim=optim)
+        train_loss, train_accuracy, train_f1 = do_epoch(model, train_loader, criterion, optim)
         print("EPOCH {:03d}: train_loss={:.4f}, train_accuracy={:.4f}, train_f1={:.4f}".format(epoch, train_loss, train_accuracy, train_f1))
         
         if train_accuracy > best_accuracy:
