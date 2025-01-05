@@ -7,7 +7,7 @@ from data import get_FlawDataset
 from tqdm import tqdm
 from sklearn.metrics import f1_score
 import config
-from models import Net
+from models import ResNetClassifier
 from torchvision import transforms
 from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.metrics import confusion_matrix
@@ -19,7 +19,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def main(args):
     transform = transforms.Compose([
-        transforms.Resize((28, 28)),
+        transforms.Resize((224, 224)),
         transforms.ToTensor()
         ])
     
@@ -27,7 +27,7 @@ def main(args):
 
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
 
-    model = Net().to(device)
+    model = ResNetClassifier(num_classes=2).to(device)
     model.load_state_dict(torch.load(args.MODEL_FILE))
     model.eval()
 
@@ -49,7 +49,7 @@ def main(args):
     
     mean_accuracy = total_accuracy / len(dataloader)
     f1 = f1_score(all_y_true, all_y_pred, average='weighted')
-    roc_auc = roc_auc_score(all_y_true, all_y_probs, multi_class='ovr', average='weighted')
+    roc_auc = roc_auc_score(all_y_true, np.array(all_y_probs)[:, 0])
     print(f'Accuracy on target data: {mean_accuracy:.4f}')
     print(f'F1 Score on target data: {f1:.4f}')
     print(f'ROC AUC on target data: {roc_auc:.4f}')
@@ -70,6 +70,6 @@ def main(args):
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Test a model on MNIST-M')
     arg_parser.add_argument('MODEL_FILE', help='A model in trained_models')
-    arg_parser.add_argument('--batch-size', type=int, default=256)
+    arg_parser.add_argument('--batch-size', type=int, default=64)
     args = arg_parser.parse_args()
     main(args)

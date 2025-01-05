@@ -28,7 +28,7 @@ class FlawDataset(Dataset):
         return image, label
 
 def get_FlawDataset(data_dir, transform, split_data=True):
-    classes = ['cut', 'hole', 'color', 'good']
+    classes = ['hole', 'good']
     file_paths = []
     labels = []
 

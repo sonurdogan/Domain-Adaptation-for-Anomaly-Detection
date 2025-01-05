@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm
 
 import config
-from models import Net
+from models import ResNetClassifier
 from data import get_FlawDataset
 from sklearn.metrics import f1_score
 from torchvision import transforms
@@ -21,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def create_dataloaders(batch_size):
     
     transform = transforms.Compose([
-        transforms.Resize((28, 28)),
+        transforms.Resize((224, 224)),
         transforms.ToTensor()
         ])
     
@@ -52,7 +52,7 @@ def test_model(model, dataloader, plot_confusion_matrix=True):
     
     mean_accuracy = total_accuracy / len(dataloader)
     f1 = f1_score(all_y_true, all_y_pred, average='weighted')
-    roc_auc = roc_auc_score(all_y_true, all_y_probs, multi_class='ovr', average='weighted')
+    roc_auc = roc_auc_score(all_y_true, np.array(all_y_probs)[:, 0])
 
     print(f'Accuracy on test data: {mean_accuracy:.4f}')
     print(f'F1 Score on test data: {f1:.4f}')
@@ -97,8 +97,8 @@ def do_epoch(model, dataloader, criterion, optim):
 
 def main(args):
     train_loader, val_loader = create_dataloaders(args.batch_size)
-
-    model = Net().to(device)
+    print("Data loaded", next(iter(train_loader)))
+    model = ResNetClassifier(num_classes=2).to(device)
     optim = torch.optim.Adam(model.parameters())
     #lr_schedule = torch.optim.lr_scheduler.ReduceLROnPlateau(optim, patience=1, verbose=True)
     criterion = torch.nn.CrossEntropyLoss()

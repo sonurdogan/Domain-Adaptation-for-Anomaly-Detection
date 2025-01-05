@@ -12,7 +12,7 @@ from torchvision.transforms import Compose, ToTensor
 from tqdm import tqdm, trange
 
 import config
-from models import Net
+from models import ResNetClassifier
 from utils import loop_iterable, set_requires_grad, GrayscaleToRgb
 from data import get_FlawDataset
 from torchvision import transforms
@@ -21,7 +21,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def main(args):
-    source_model = Net().to(device)
+    source_model = ResNetClassifier().to(device)
     source_model.load_state_dict(torch.load(args.MODEL_FILE))
     source_model.eval()
     set_requires_grad(source_model, requires_grad=False)
@@ -29,24 +29,26 @@ def main(args):
     clf = source_model
     source_model = source_model.feature_extractor
 
-    target_model = Net().to(device)
+    target_model = ResNetClassifier(num_classes=2).to(device)
     target_model.load_state_dict(torch.load(args.MODEL_FILE))
+    
     target_model = target_model.feature_extractor
 
     discriminator = nn.Sequential(
-        nn.Linear(320, 50),
-        nn.ReLU(),
-        nn.Linear(50, 20),
-        nn.ReLU(),
-        nn.Linear(20, 1)
-    ).to(device)
+    nn.Linear(2048, 50),  # Update input size to 2048
+    nn.ReLU(),
+    nn.Linear(50, 20),
+    nn.ReLU(),
+    nn.Linear(20, 1)
+).to(device)
+
 
     half_batch = args.batch_size // 32
    
 
 
     transform = transforms.Compose([
-        transforms.Resize((28, 28)),
+        transforms.Resize((224, 224)),
         transforms.ToTensor()
         ])
     
